@@ -8,7 +8,10 @@ public class PlayerMovement : MonoBehaviour
 
     public float moveSpeed;
     public GameObject gameOverPanel;
-    public TextMeshProUGUI gameOverText;
+    public TextMeshProUGUI gameOverDetailText;
+    public TextMeshProUGUI gameOverScoreText;
+
+    private float _currentScore;
 
     void Update()
     {
@@ -36,29 +39,41 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private IEnumerator HandleTriggerFinishLine()
+    IEnumerator CountUpToTarget(float targetScore)
     {
-        yield return new WaitForSeconds(0.2f);
+        while (_currentScore < targetScore)
+        {
+            _currentScore += 1f;
+            _currentScore = Mathf.Clamp(_currentScore, 0f, targetScore);
+            gameOverScoreText.text = "Score: " + _currentScore;
+            yield return new WaitForSeconds(0.005f);
+        }
 
         Transform collectPoint = transform.GetChild(0);
-        int cubeCount = 0, sphereCount = 0, totalScore = 0;
         for (int i = 1; i < StackManager.instance.collectedList.Count; i++)
         {
             GameObject currentObject = StackManager.instance.collectedList[i];
             currentObject.transform.parent = collectPoint;
-            if (currentObject.tag == "CollectedCube") { cubeCount++; }
-            if (currentObject.tag == "CollectedSphere") { sphereCount++; }
             currentObject.transform.position = new Vector3(collectPoint.position.x, 0.75f * i, transform.position.z);
             currentObject.transform.localScale = new Vector3(.7f, .7f, .7f);
         }
-
-        totalScore = (cubeCount * 5) + (sphereCount * 10);
-
-        gameOverText.text = $"You've collected {cubeCount} cube(s), {sphereCount} sphere(s) \n\n Total Score: {totalScore}";
-
         Time.timeScale = 0;
-        gameOverPanel.SetActive(true);
+    }
 
+    private IEnumerator HandleTriggerFinishLine()
+    {
+        yield return new WaitForSeconds(0.1f);
+        int cubeCount = 0, sphereCount = 0, totalScore = 0;
+        for (int i = 1; i < StackManager.instance.collectedList.Count; i++)
+        {
+            GameObject currentObject = StackManager.instance.collectedList[i];
+            if (currentObject.tag == "CollectedCube") { cubeCount++; }
+            if (currentObject.tag == "CollectedSphere") { sphereCount++; }
+        }
+        totalScore = (cubeCount * 5) + (sphereCount * 10);
+        gameOverDetailText.text = $"You've collected {cubeCount} cube(s), {sphereCount} sphere(s)";
+        gameOverPanel.SetActive(true);
+        StartCoroutine(CountUpToTarget(totalScore));
     }
 
 }
