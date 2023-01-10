@@ -71,7 +71,10 @@ public class PlayerMovement : MonoBehaviour
             if (currentObject.tag == "CollectedSphere") { sphereCount++; }
         }
         totalScore = (cubeCount * 5) + (sphereCount * 10);
+        Debug.Log(cubeCount);
+        Debug.Log(sphereCount);
         gameOverDetailText.text = $"You've collected {cubeCount} cube(s), {sphereCount} sphere(s)";
+        gameOverScoreText.text = $"Score: {totalScore}";
         gameOverPanel.SetActive(true);
         StartCoroutine(CountUpToTarget(totalScore));
     }
